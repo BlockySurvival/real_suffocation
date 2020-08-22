@@ -1,6 +1,10 @@
 -- Load setting
 local suffocation_damage = tonumber(minetest.settings:get("real_suffocation_damage")) or 10
 
+local function is_truthy(val)
+	return val ~= nil and val ~= false and val ~= 0 and val ~= ""
+end
+
 local function should_suffocate(def)
 --[[ Here comes the HUGE conditional deciding whether we use suffocation. We want to catch as many nodes as possible
 while avoiding bad nodes. We care mostly about physical properties, we don't care about visual appearance.
@@ -11,13 +15,14 @@ Here's what it checks and why:
 	Everything else is probably too small for suffocation to seem real.
 - disable_suffocation group: If set to 1, we bail out. This makes it possible for nodes to defend themselves against hacking. :-)
 ]]
-
+	local groups = def.groups or {}
 	return (def.walkable == nil or def.walkable == true)
 		and (def.drowning == nil or def.drowning == 0)
 		and (def.damage_per_second == nil or def.damage_per_second <= 0)
 		and (def.collision_box == nil or def.collision_box.type == "regular")
 		and (def.node_box == nil or def.node_box.type == "regular")
-		and (def.groups.disable_suffocation ~= 1)
+		and not is_truthy(groups.disable_suffocation)
+		and not is_truthy(groups.door)
 end
 
 -- Checks all nodes and adds suffocation (drowning damage) for suitable nodes
